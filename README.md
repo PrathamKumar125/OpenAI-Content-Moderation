@@ -87,6 +87,7 @@ DEBUG=True
 POST /api/v1/moderate/text
 POST /api/v1/moderate/image
 GET  /api/v1/moderate/{task_id}
+GET  /api/v1/stats
 ```
 
 #### Health & Metrics
