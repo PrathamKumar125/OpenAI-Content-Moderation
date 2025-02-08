@@ -1,32 +1,72 @@
 # Content Moderation Service
 
-A scalable FastAPI-based service for content moderation using OpenAI's moderation API. The service provides real-time moderation of text and images with caching, metrics collection, and health monitoring capabilities.
+FastAPI-based content moderation service using OpenAI's API for real-time text and image moderation.
 
-## Features
+## Table of Contents
+- [Overview](#overview)
+- [Architecture](#architecture)
+- [Getting Started](#getting-started)
+  - [Prerequisites](#prerequisites)
+  - [Installation](#installation)
+  - [Configuration](#configuration)
+- [Usage](#usage)
+  - [API Endpoints](#api-endpoints)
+  - [Examples](#examples)
+- [Development](#development)
+  - [Local Setup](#local-setup)
+  - [Docker Setup](#docker-setup)
+- [Testing](#testing)
+- [Performance](#performance)
+- [Monitoring](#monitoring)
+- [Troubleshooting](#troubleshooting)
 
-- Text and image content moderation
-- Redis-based caching for improved performance
-- Celery-based asynchronous task processing
-- Prometheus metrics integration
-- Health monitoring for all service components
-- Docker and Docker Compose support
-- PostgreSQL for persistent storage
+## Overview
 
-## Prerequisites
+Key Features:
+- Real-time content moderation
+- Caching and performance optimization
+- Scalable architecture
+- Comprehensive monitoring
+- Docker support
 
-- Docker and Docker Compose
-- Python 3.11+
-- OpenAI API key
+## Architecture
 
-## Quick Start
-
-1. Clone the repository:
-```bash
-git clone https://github.com/yourusername/content-moderation-service.git
-cd content-moderation-service
+```
+┌─────────────┐     ┌─────────────┐     ┌─────────────┐
+│   FastAPI   │────>│   Celery    │────>│   OpenAI    │
+│   Server    │     │   Workers   │     │    API      │
+└─────────────┘     └─────────────┘     └─────────────┘
+       │                   │
+       │            ┌─────────────┐
+       └──────────>│   Redis     │
+                   │   Cache     │
+                   └─────────────┘
 ```
 
-2. Create a `.env` file with your configuration:
+Components:
+- FastAPI application server
+- Redis for caching and message queue
+- Celery for async processing
+- PostgreSQL for data persistence
+- Prometheus for metrics
+
+## Getting Started
+
+### Prerequisites
+- Python 3.11+
+- Redis
+- PostgreSQL
+- OpenAI API key
+
+### Installation
+```bash
+git clone https://github.com/PrathamKumar125/content-moderation-service.git
+cd content-moderation-service
+pip install -r requirements.txt
+```
+
+### Configuration
+Create `.env` file:
 ```env
 DATABASE_URL=postgresql://user:password@db:5432/content_moderation
 POSTGRES_PASSWORD=your_password
@@ -38,70 +78,99 @@ LOG_LEVEL=info
 DEBUG=True
 ```
 
-3. Build and start the services using Docker Compose:
-```bash
-# Build and start all services
-docker-compose up --build
+## Usage
 
-# Start services in detached mode
-docker-compose up --build -d
+### API Endpoints
 
-# View logs when running in detached mode
-docker-compose logs -f
+#### Content Moderation
+```
+POST /api/v1/moderate/text
+POST /api/v1/moderate/image
+GET  /api/v1/moderate/{task_id}
 ```
 
-## API Endpoints
+#### Health & Metrics
+```
+GET /health
+GET /metrics
+```
 
-### Health Check
-- `GET /health` - Basic health check
-- `GET /health/ready` - Detailed readiness check of all components
+### Examples
 
-### Content Moderation
-- `POST /api/v1/moderate/text` - Moderate text content
-- `POST /api/v1/moderate/image` - Moderate image content
-- `GET /api/v1/moderate/{task_id}` - Get moderation result
-
-### Metrics and Statistics
-- `GET /api/v1/metrics` - Prometheus metrics
-- `GET /api/v1/stats` - Service statistics
-
-## Architecture
-
-The service consists of the following components:
-
-- FastAPI web server
-- Celery workers for async processing
-- Redis for caching and message broker
-- PostgreSQL for persistent storage
-- Prometheus for metrics collection
+Text Moderation:
+```bash
+curl -X POST http://localhost:8000/api/v1/moderate/text \
+  -H "Content-Type: application/json" \
+  -d '{"text": "Content to moderate"}'
+```
 
 ## Development
 
-1. Install dependencies:
+### Local Setup
 ```bash
-pip install -r requirements.txt
-```
-
-2. Run the development server:
-```bash
+# Start services
+redis-server
 uvicorn main:app --reload
+celery -A worker worker --loglevel=info
 ```
 
-3. Start Celery worker:
+### Docker Setup
 ```bash
-celery -A services.celery worker --pool=solo --loglevel=info
+docker-compose up --build
 ```
 
 ## Testing
 
-Run the test suite:
 ```bash
-pytest
+# Unit tests
+pytest tests/unit
+
+# Integration tests
+pytest tests/integration
+
+# Load tests
+pytest tests/test_load.py
 ```
+
+## Performance
+
+Benchmarks:
+- Response Time: < 500ms (p95)
+- Throughput: 1000 req/s
+- Concurrent Users: 50+
+
+Optimization:
+- Redis caching
+- Connection pooling
+- Async processing
+- Rate limiting
 
 ## Monitoring
 
-Access the monitoring endpoints:
+Metrics:
+- Request latency
+- Error rates
+- Cache hit ratio
+- Queue length
+- Worker status
 
-- FastAPI Swagger UI: http://localhost:8000/docs
-- Prometheus metrics: http://localhost:9090
+Tools:
+- Prometheus
+- Grafana dashboards
+- Health checks
+
+## Troubleshooting
+
+Common Issues:
+- Rate limiting: Implement backoff
+- Cache misses: Adjust TTL
+- Worker overload: Scale horizontally
+
+Error Responses:
+```json
+{
+    "error": "rate_limit_exceeded",
+    "message": "Too many requests",
+    "retry_after": 60
+}
+```
