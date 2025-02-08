@@ -1,0 +1,16 @@
+FastAPI
+Celery
+redis
+psycopg2-binary
+pydantic
+pytest
+uvicorn
+httpx
+prometheus-client
+python-dotenv
+requests
+sqlalchemy
+openai
+pydantic[url]
+celery
+pydantic_settings
