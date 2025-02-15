@@ -14,13 +14,13 @@ async def moderate_text(request: ModerationRequest):
 
 @router.post("/image")
 async def moderate_image(request: ImageModerationRequest):
-    if not (request.image_url or request.image_base64):
+    if not (request.image_url):
         raise HTTPException(
             status_code=400,
-            detail="Either image_url or image_base64 must be provided"
+            detail="image_url must be provided"
         )
     
-    image_url = request.image_url or request.image_base64
+    image_url = request.image_url
     if not image_url.startswith(('http://', 'https://', 'data:image/')):
         raise HTTPException(
             status_code=400,
